@@ -14,12 +14,14 @@ export const signup = async (req, res, next) => {
         username: req.body.username,
         password: await hashPassword(req.body.password),
         phonenumber: req.body.phoneNumber,
+        numberOfTokens: 0
       },
     });
 
     const token = createJWT(user);
     res.json({ token });
   } catch(e) {
+    console.log(e)
 
     // update more to get exact error
     e.type = 'input'
@@ -27,21 +29,26 @@ export const signup = async (req, res, next) => {
   }
 };
 
-export const signin = async (req, res) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      username: req.body.username,
-    },
-  });
-
-  const isValid = await comparePasswords(req.body.password, user.password);
-
-  if (!isValid) {
-    res.status(401);
-    res.json({ message: "either username or passowrd is incorrect" });
-    return;
+export const signin = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        username: req.body.username,
+      },
+    });
+  
+    const isValid = await comparePasswords(req.body.password, user.password);
+  
+    if (!isValid) {
+      res.status(401);
+      res.json({ message: "either username or passowrd is incorrect" });
+      return;
+    }
+  
+    const token = createJWT(user);
+    res.json({ token });
+  } catch(e) {
+    next(e)
   }
 
-  const token = createJWT(user);
-  res.json({ token });
 };

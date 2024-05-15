@@ -17,11 +17,15 @@ model User {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  username  String   @unique
-  password  String
-  phonenumber BigInt
-  images  Image[]
+
+  username       String  @unique
+  password       String
+  phonenumber    BigInt
+  numberOfTokens BigInt
+  packageId      String?
+  package        Package? @relation(fields: [packageId], references: [id])
+
+  images Image[]
 }
 
 model Image {
@@ -31,13 +35,24 @@ model Image {
 
   belongsToId String
   belongsTo   User   @relation(fields: [belongsToId], references: [id])
-  
+
   url String
-  @@unique([id, belongsToId])
   // add more fields based on the model
+
+  @@unique([id, belongsToId])
 }
 
+enum PackageName {
+  Silver
+  Gold
+  Platinum
+}
 
-//add tokens model
-
-//add payment model
+model Package {
+  id             String      @id @default(uuid())
+  name           PackageName
+  numberOfTokens BigInt
+  amount         Int
+  currency       String
+  users          User[]
+}
